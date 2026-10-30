@@ -160,7 +160,8 @@ on:
 jobs:
   build:
     name: For ${{ github.event.inputs.FEIL }} KPM ${{ github.event.inputs.KPM }} lz4kd ${{ github.event.inputs.lz4kd }} SUSFS ${{ github.event.inputs.SUSFS }}
-    runs-on: ubuntu-latest
+    # 锁定 24.04：ubuntu-latest 正在灰度迁移到 Ubuntu 26.04（10/19-11/19），26.04 有包缺失/损坏问题
+    runs-on: ubuntu-24.04
     env:
       CCACHE_COMPILERCHECK: "%compiler% -dumpmachine; %compiler% -dumpversion"
       CCACHE_NOHASHDIR: "true"
@@ -198,8 +199,10 @@ jobs:
 
       - name: "📦 Install Dependencies | 安装构建依赖"
         run: |
-          echo "📥 正在安装构建依赖..."
-          sudo apt-get update
+          echo "🖥️ 镜像: ${ImageOS} ${ImageVersion} | $(lsb_release -ds 2>/dev/null || true)"
+          echo "📥 正在更新apt索引..."
+          sudo apt-get update -o Acquire::Retries=3
+          echo "📦 正在安装构建依赖..."
           sudo apt-get install -y \
             python3 git curl ccache libelf-dev build-essential flex bison \
             libssl-dev libncurses-dev liblz4-tool zlib1g-dev libxml2-utils \
